@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quill Image Uploader</title>
+    <link
+      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
+      rel="stylesheet"
+    />
+    <style>
+      #editor-container {
+        height: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="editor-container"></div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+      var quill = new Quill("#editor-container", {
+        theme: "snow",
+        modules: {
+          toolbar: [
+            ["bold", "italic"],
+            ["link", "blockquote", "code-block", "image"],
+            [{ list: "ordered" }, { list: "bullet" }],
+          ],
+        },
+      });
+
+      // Image upload handler
+      function selectLocalImage() {
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("accept", "image/*");
+        input.click();
+
+        input.onchange = () => {
+          const file = input.files[0];
+          if (/^image\//.test(file.type)) {
+            saveToServer(file);
+          } else {
+            console.warn("You can only upload images.");
+          }
+        };
+      }
+
+      function saveToServer(file) {
+        const fd = new FormData();
+        fd.append("image", file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload", true);
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            const url = JSON.parse(xhr.responseText).url;
+            insertToEditor(url);
+          }
+        };
+        xhr.send(fd);
+      }
+
+      function insertToEditor(url) {
+        const range = quill.getSelection();
+        quill.insertEmbed(range.index, "image", url);
+      }
+
+      quill.getModule("toolbar").addHandler("image", () => {
+        selectLocalImage();
+      });
+    </script>
+  </body>
+</html>

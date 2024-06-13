@@ -1,0 +1,7 @@
+node_modules
+package-lock.json
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.bmp
+uploads/*.gif
