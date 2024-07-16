@@ -5,3 +5,4 @@ uploads/*.jpeg
 uploads/*.png
 uploads/*.bmp
 uploads/*.gif
+.DS_Store
