@@ -9,16 +9,58 @@
       rel="stylesheet"
     />
     <style>
-      #editor-container {
-        height: 300px;
+      #editor-1-container,
+      #editor-2-container,
+      #editor-3-container {
+        height: 120px;
       }
     </style>
   </head>
   <body>
-    <div id="editor-container"></div>
+    <table width="100%">
+      <tr>
+        <td>
+          <h5>Source Editor 1</h5>
+          <div id="editor-1-container"></div>
+        </td>
+        <td>
+          <h5>Source Editor 2</h5>
+          <div id="editor-2-container"></div>
+        </td>
+      </tr>
+    </table>
+    <h1>&nbsp;</h1>
+    <h5>Merged Target Editor</h5>
+    <div id="editor-3-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
     <script>
-      var quill = new Quill("#editor-container", {
+      var quill1 = new Quill("#editor-1-container", {
+        theme: "snow",
+        modules: {
+          toolbar: [
+            ["bold", "italic"],
+            ["link", "blockquote", "code-block", "image"],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["table"],
+          ],
+          table: true,
+        },
+      });
+
+      var quill2 = new Quill("#editor-2-container", {
+        theme: "snow",
+        modules: {
+          toolbar: [
+            ["bold", "italic"],
+            ["link", "blockquote", "code-block", "image"],
+            [{ list: "ordered" }, { list: "bullet" }],
+            ["table"],
+          ],
+          table: true,
+        },
+      });
+
+      var quill3 = new Quill("#editor-3-container", {
         theme: "snow",
         modules: {
           toolbar: [
@@ -32,7 +74,7 @@
       });
 
       // Image upload handler
-      function selectLocalImage() {
+      function selectLocalImage(currentQuill) {
         const input = document.createElement("input");
         input.setAttribute("type", "file");
         input.setAttribute("accept", "image/*");
@@ -40,14 +82,14 @@
         input.onchange = () => {
           const file = input.files[0];
           if (/^image\//.test(file.type)) {
-            saveToServer(file);
+            saveToServer(file, currentQuill);
           } else {
             console.warn("You can only upload images.");
           }
         };
       }
 
-      function saveToServer(file) {
+      function saveToServer(file, currentQuill) {
         const fd = new FormData();
         fd.append("image", file);
 
@@ -57,20 +99,38 @@
         xhr.onload = () => {
           if (xhr.status === 200) {
             const url = JSON.parse(xhr.responseText).url;
-            insertToEditor(url);
+            const range = currentQuill.getSelection();
+            currentQuill.insertEmbed(range.index, "image", url);
           }
         };
         xhr.send(fd);
       }
 
-      function insertToEditor(url) {
-        const range = quill.getSelection();
-        quill.insertEmbed(range.index, "image", url);
-      }
-
-      quill.getModule("toolbar").addHandler("image", () => {
-        selectLocalImage();
+      quill1.getModule("toolbar").addHandler("image", () => {
+        selectLocalImage(quill1);
       });
+
+      quill2.getModule("toolbar").addHandler("image", () => {
+        selectLocalImage(quill2);
+      });
+
+      quill3.getModule("toolbar").addHandler("image", () => {
+        selectLocalImage(quill3);
+      });
+
+      quill1.on("text-change", (delta, oldDelta, source) => {
+        setTarget();
+      });
+
+      quill2.on("text-change", (delta, oldDelta, source) => {
+        setTarget();
+      });
+
+      function setTarget() {
+        var quill1Content = quill1.root.innerHTML.trim();
+        var quill2Content = quill2.root.innerHTML.trim();
+        quill3.root.innerHTML = quill1Content + "<hr>" + quill2Content;
+      }
     </script>
   </body>
 </html>
