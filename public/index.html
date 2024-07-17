@@ -15,22 +15,50 @@
         height: 120px;
       }
     </style>
+    <!-- #region PDF -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <script>
+      function generatePDF(elId) {
+        const doc = new jspdf.jsPDF();
+        const element = document.getElementById(elId);
+        doc.html(element, {
+          callback: function (doc) {
+            doc.save("export.pdf");
+          },
+        });
+      }
+    </script>
+    <!-- #endregion PDF -->
   </head>
   <body>
     <table width="100%">
       <tr>
         <td>
-          <h5>Source Editor 1</h5>
+          <h5>
+            Source Editor 1
+            <button onclick="generatePDF('editor-1-container')">
+              Generate PDF
+            </button>
+          </h5>
           <div id="editor-1-container"></div>
         </td>
         <td>
-          <h5>Source Editor 2</h5>
+          <h5>
+            Source Editor 2
+            <button onclick="generatePDF('editor-2-container')">
+              Generate PDF
+            </button>
+          </h5>
           <div id="editor-2-container"></div>
         </td>
       </tr>
     </table>
     <h1>&nbsp;</h1>
-    <h5>Merged Target Editor</h5>
+    <h5>
+      Merged Target Editor
+      <button onclick="generatePDF('editor-3-container')">Generate PDF</button>
+    </h5>
     <div id="editor-3-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
     <script>
@@ -129,7 +157,7 @@
       function setTarget() {
         var quill1Content = quill1.root.innerHTML.trim();
         var quill2Content = quill2.root.innerHTML.trim();
-        quill3.root.innerHTML = quill1Content + "<hr>" + quill2Content;
+        quill3.root.innerHTML = quill1Content + "<br>" + quill2Content;
       }
     </script>
   </body>
