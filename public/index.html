@@ -159,6 +159,31 @@
         var quill2Content = quill2.root.innerHTML.trim();
         quill3.root.innerHTML = quill1Content + "<br>" + quill2Content;
       }
+
+      function onPasteToUpload(currentQuill) {
+        currentQuill.root.addEventListener("paste", async (e) => {
+          const clipboardData = e.clipboardData || window.clipboardData;
+          const tmp = document.createElement("div");
+          tmp.innerHTML = clipboardData.getData("text/html");
+          const imgNodeList = tmp.querySelectorAll("img");
+          const blob = await (async function (src) {
+            const response = await fetch(src);
+            const blob = await response.blob();
+            return blob;
+          })(imgNodeList[0].src);
+          const file = new File([blob], "new.png");
+          saveToServer(file, currentQuill);
+          currentQuill.root.querySelectorAll("img").forEach((item) => {
+            if (item.src.indexOf("base64") > -1) {
+              item.remove();
+            }
+          });
+        });
+      }
+
+      onPasteToUpload(quill1);
+      onPasteToUpload(quill2);
+      onPasteToUpload(quill3);
     </script>
   </body>
 </html>
