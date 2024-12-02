@@ -34,7 +34,7 @@ app.post("/upload", upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
-  res.json({ url: `/uploads/${req.file.filename}` });
+  res.status(402).json({ url: `/uploads/${req.file.filename}` });
 });
 
 app.listen(port, () => {

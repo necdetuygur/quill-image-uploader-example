@@ -129,8 +129,18 @@
             const url = JSON.parse(xhr.responseText).url;
             const range = currentQuill.getSelection();
             currentQuill.insertEmbed(range.index, "image", url);
+          } else {
+            console.error("onLoad Error: Image upload error!", xhr);
           }
         };
+
+        // Error handling
+        xhr.onreadystatechange = function (oEvent) {
+          if (xhr.status !== 200) {
+            console.error("onReadyStateChange Error: Image upload error!", xhr);
+          }
+        };
+
         xhr.send(fd);
       }
 
