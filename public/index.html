@@ -165,19 +165,17 @@
           const clipboardData = e.clipboardData || window.clipboardData;
           const tmp = document.createElement("div");
           tmp.innerHTML = clipboardData.getData("text/html");
-          const imgNodeList = tmp.querySelectorAll("img");
-          const blob = await (async function (src) {
-            const response = await fetch(src);
-            const blob = await response.blob();
-            return blob;
-          })(imgNodeList[0].src);
-          const file = new File([blob], "new.png");
-          saveToServer(file, currentQuill);
-          currentQuill.root.querySelectorAll("img").forEach((item) => {
-            if (item.src.indexOf("base64") > -1) {
-              item.remove();
-            }
-          });
+          setTimeout(() => {
+            currentQuill.root.querySelectorAll("img").forEach(async (item) => {
+              if (item.src.indexOf("base64") > -1) {
+                const response = await fetch(item.src);
+                const blob = await response.blob();
+                const file = new File([blob], "new.png");
+                saveToServer(file, currentQuill);
+                item.remove();
+              }
+            });
+          }, 300);
         });
       }
 
