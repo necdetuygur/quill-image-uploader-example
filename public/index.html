@@ -101,7 +101,6 @@
         },
       });
 
-      // Image upload handler
       function selectLocalImage(currentQuill) {
         const input = document.createElement("input");
         input.setAttribute("type", "file");
@@ -127,14 +126,16 @@
         xhr.onload = () => {
           if (xhr.status === 200) {
             const url = JSON.parse(xhr.responseText).url;
-            const range = currentQuill.getSelection();
+            const range = currentQuill.getSelection() || {
+              index: currentQuill.getLength(),
+            };
             currentQuill.insertEmbed(range.index, "image", url);
+            currentQuill.setSelection(range.index + 1);
           } else {
             console.error("onLoad Error: Image upload error!", xhr);
           }
         };
 
-        // Error handling
         xhr.onreadystatechange = function (oEvent) {
           if (xhr.status !== 200) {
             console.error("onReadyStateChange Error: Image upload error!", xhr);
@@ -189,9 +190,67 @@
         });
       }
 
+      function onDragDropToUpload(currentQuill) {
+        let isDropping = false;
+
+        currentQuill.root.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+
+        currentQuill.root.addEventListener("drop", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          isDropping = true;
+
+          const files = e.dataTransfer.files;
+          if (files && files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              if (file.type.startsWith("image/")) {
+                if (i > 0) {
+                  await new Promise((resolve) => setTimeout(resolve, 100));
+                }
+                saveToServer(file, currentQuill);
+              }
+            }
+
+            setTimeout(() => {
+              currentQuill.root.querySelectorAll("img").forEach((item) => {
+                if (item.src.indexOf("base64") > -1) {
+                  item.remove();
+                }
+              });
+            }, 50);
+          }
+
+          setTimeout(() => {
+            if (!isDropping) {
+              currentQuill.root
+                .querySelectorAll("img")
+                .forEach(async (item) => {
+                  if (item.src.indexOf("base64") > -1) {
+                    const response = await fetch(item.src);
+                    const blob = await response.blob();
+                    const file = new File([blob], "dropped.png");
+                    saveToServer(file, currentQuill);
+                    item.remove();
+                  }
+                });
+            }
+            isDropping = false;
+          }, 500);
+        });
+      }
+
       onPasteToUpload(quill1);
       onPasteToUpload(quill2);
       onPasteToUpload(quill3);
+
+      onDragDropToUpload(quill1);
+      onDragDropToUpload(quill2);
+      onDragDropToUpload(quill3);
     </script>
   </body>
 </html>
